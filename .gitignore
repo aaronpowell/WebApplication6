@@ -1,0 +1,9 @@
+bin
+.azure
+obj
+.vs
+
+appsettings.Development.json
+*.user
+manifests
+next-steps.md
