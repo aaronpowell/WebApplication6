@@ -1,4 +1,5 @@
 using Aspire.Hosting.Azure;
+using System.Diagnostics;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
@@ -7,8 +8,11 @@ var postgres = builder.AddPostgres("pg");
 
 if (builder.ExecutionContext.IsPublishMode)
 {
+    Debugger.Break();
+    IResourceBuilder<AzurePostgresResource> azurePostgres = null!;
     postgres.AsAzurePostgresFlexibleServer((resource, construct, server) =>
     {
+        azurePostgres = resource;
         construct.AddOutput(server.AddOutput("name", data => data.Name));
     });
 
