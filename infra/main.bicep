@@ -66,6 +66,7 @@ module vector_extension 'vector-extension/vector-extension.bicep' = {
   scope: rg
   params: {
     location: location
+    postgresServerName: pg.outputs.name
   }
 }
 output MANAGED_IDENTITY_CLIENT_ID string = resources.outputs.MANAGED_IDENTITY_CLIENT_ID

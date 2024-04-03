@@ -1,6 +1,3 @@
-using Aspire.Hosting.Azure;
-using System.Diagnostics;
-
 var builder = DistributedApplication.CreateBuilder(args);
 
 
@@ -8,35 +5,31 @@ var postgres = builder.AddPostgres("pg");
 
 if (builder.ExecutionContext.IsPublishMode)
 {
-    Debugger.Break();
-    IResourceBuilder<AzurePostgresResource> azurePostgres = null!;
-    postgres.AsAzurePostgresFlexibleServer((resource, construct, server) =>
-    {
-        azurePostgres = resource;
-        construct.AddOutput(server.AddOutput("name", data => data.Name));
-    });
-
     var template = builder.AddBicepTemplateString("vector-extension", """
+    param postgresServerName string
+
+    @description('')
+    param location string = resourceGroup().location
+
     resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2022-12-01' existing = {
-        name: '${postgresServerName}'
+        name: postgresServerName
     }
 
     resource postgresConfig 'Microsoft.DBforPostgreSQL/flexibleServers/configurations@2022-12-01' = {
-      dependsOn: [
-        postgresServer
-      ]
-      name: '${postgresServerName}/azure.extensions'
+      parent: postgresServer
+      name: 'azure.extensions'
       properties: {
-        value: 'PGVECTOR'
+        value: 'VECTOR'
         source: 'user-override'
       }
     }
     """);
 
-    if (azurePostgres is not null)
+    postgres.AsAzurePostgresFlexibleServer((resource, construct, server) =>
     {
-        template.WithParameter("postgresServerName", azurePostgres.GetOutput("name"));
-    }
+        construct.AddOutput(server.AddOutput("name", data => data.Name));
+        template.WithParameter("postgresServerName", resource.GetOutput("name"));
+    });
 }
 else
 {
