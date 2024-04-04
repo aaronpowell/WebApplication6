@@ -34,8 +34,12 @@ if (builder.ExecutionContext.IsPublishMode)
 else
 {
     postgres
+    .WithPgAdmin()
     .WithImage("ankane/pgvector")
-    .WithImageTag("latest");
+    .WithImageTag("latest")
+    // Ensure that the right DB gets created
+    .WithEnvironment("POSTGRES_DB", "db")
+    ;
 }
 
 var db = postgres.AddDatabase("db");
